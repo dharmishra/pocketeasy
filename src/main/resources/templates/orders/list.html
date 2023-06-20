@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title th:text="#{orders.list.headline}" />
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 th:text="#{orders.list.headline}" class="flex-grow-1" />
+                <div>
+                    <a th:href="@{/orderss/add}" th:text="#{orders.list.createNew}" class="btn btn-primary ms-2" />
+                </div>
+            </div>
+            <div th:if="${orderss.empty}" th:text="#{orders.list.empty}" />
+            <div th:if="${!orderss.empty}" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th th:text="#{orders.id.label}" scope="col" />
+                            <th th:text="#{orders.orderDate.label}" scope="col" />
+                            <th th:text="#{orders.orderItem.label}" scope="col" />
+                            <th th:text="#{orders.price.label}" scope="col" />
+                            <th th:text="#{orders.status.label}" scope="col" />
+                            <th th:text="#{orders.networkUsers.label}" scope="col" />
+                            <th><!-- --></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="orders : ${orderss}">
+                            <td th:text="${orders.id}" />
+                            <td th:text="${orders.orderDate}" />
+                            <td th:text="${orders.orderItem}" />
+                            <td th:text="${orders.price}" />
+                            <td th:text="${orders.status}" />
+                            <td th:text="${orders.networkUsers}" />
+                            <td>
+                                <div class="float-end text-nowrap">
+                                    <a th:href="@{/orderss/edit/{id}(id=${orders.id})}" th:text="#{orders.list.edit}" class="btn btn-sm btn-info" />
+                                    <form th:action="@{/orderss/delete/{id}(id=${orders.id})}"
+                                            th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
+                                        <button th:text="#{orders.list.delete}" type="submit" class="btn btn-sm btn-danger" />
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

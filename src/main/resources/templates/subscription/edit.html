@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title th:text="#{subscription.edit.headline}" />
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 th:text="#{subscription.edit.headline}" class="flex-grow-1" />
+                <div>
+                    <a th:href="@{/subscriptions}" th:text="#{subscription.edit.back}" class="btn btn-secondary" />
+                </div>
+            </div>
+            <div th:replace="~{fragments/forms::globalErrors('subscription')}" />
+            <form th:action="${T(com.pocketeasy.pocketeasy.util.WebUtils).getRequest().requestURI}" method="post">
+                <div th:replace="~{fragments/forms::inputRow(object='subscription', field='subscriptionName')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='subscription', field='subscriptionDetails')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='subscription', field='active', type='checkbox')}" />
+                <input type="submit" th:value="#{subscription.edit.headline}" class="btn btn-primary mt-4" />
+            </form>
+        </div>
+    </body>
+</html>

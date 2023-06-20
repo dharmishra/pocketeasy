@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title th:text="#{orders.add.headline}" />
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 th:text="#{orders.add.headline}" class="flex-grow-1" />
+                <div>
+                    <a th:href="@{/orderss}" th:text="#{orders.add.back}" class="btn btn-secondary" />
+                </div>
+            </div>
+            <div th:replace="~{fragments/forms::globalErrors('orders')}" />
+            <form th:action="${T(com.pocketeasy.pocketeasy.util.WebUtils).getRequest().requestURI}" method="post">
+                <div th:replace="~{fragments/forms::inputRow(object='orders', field='orderDate', inputClass='js-datetimepicker')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='orders', field='orderItem')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='orders', field='price')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='orders', field='status', type='select')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='orders', field='networkUsers', type='select')}" />
+                <input type="submit" th:value="#{orders.add.headline}" class="btn btn-primary mt-4" />
+            </form>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title th:text="#{networkCompany.edit.headline}" />
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 th:text="#{networkCompany.edit.headline}" class="flex-grow-1" />
+                <div>
+                    <a th:href="@{/networkCompanys}" th:text="#{networkCompany.edit.back}" class="btn btn-secondary" />
+                </div>
+            </div>
+            <div th:replace="~{fragments/forms::globalErrors('networkCompany')}" />
+            <form th:action="${T(com.pocketeasy.pocketeasy.util.WebUtils).getRequest().requestURI}" method="post">
+                <div th:replace="~{fragments/forms::inputRow(object='networkCompany', field='companyName')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='networkCompany', field='description', type='textarea')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='networkCompany', field='active', type='checkbox')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='networkCompany', field='subscriptions', type='multiselect')}" />
+                <input type="submit" th:value="#{networkCompany.edit.headline}" class="btn btn-primary mt-4" />
+            </form>
+        </div>
+    </body>
+</html>
