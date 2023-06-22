@@ -5,141 +5,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public class CronExpression {
-
-    enum CronFieldType {
-        SECOND(0, 59, null) {
-            @Override
-            int getValue(ZonedDateTime dateTime) {
-                return dateTime.getSecond();
-            }
-
-            @Override
-            ZonedDateTime setValue(ZonedDateTime dateTime, int value) {
-                return dateTime.withSecond(value).withNano(0);
-            }
-
-            @Override
-            ZonedDateTime overflow(ZonedDateTime dateTime) {
-                return dateTime.plusMinutes(1).withSecond(0).withNano(0);
-            }
-        },
-        MINUTE(0, 59, null) {
-            @Override
-            int getValue(ZonedDateTime dateTime) {
-                return dateTime.getMinute();
-            }
-
-            @Override
-            ZonedDateTime setValue(ZonedDateTime dateTime, int value) {
-                return dateTime.withMinute(value).withSecond(0).withNano(0);
-            }
-
-            @Override
-            ZonedDateTime overflow(ZonedDateTime dateTime) {
-                return dateTime.plusHours(1).withMinute(0).withSecond(0).withNano(0);
-            }
-        },
-        HOUR(0, 23, null) {
-            @Override
-            int getValue(ZonedDateTime dateTime) {
-                return dateTime.getHour();
-            }
-
-            @Override
-            ZonedDateTime setValue(ZonedDateTime dateTime, int value) {
-                return dateTime.withHour(value).withMinute(0).withSecond(0).withNano(0);
-            }
-
-            @Override
-            ZonedDateTime overflow(ZonedDateTime dateTime) {
-                return dateTime.plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
-            }
-        },
-        DAY_OF_MONTH(1, 31, null) {
-            @Override
-            int getValue(ZonedDateTime dateTime) {
-                return dateTime.getDayOfMonth();
-            }
-
-            @Override
-            ZonedDateTime setValue(ZonedDateTime dateTime, int value) {
-                return dateTime.withDayOfMonth(value).withHour(0).withMinute(0).withSecond(0).withNano(0);
-            }
-
-            @Override
-            ZonedDateTime overflow(ZonedDateTime dateTime) {
-                return dateTime.plusMonths(1).withDayOfMonth(0).withHour(0).withMinute(0).withSecond(0).withNano(0);
-            }
-        },
-        MONTH(1, 12,
-                Arrays.asList("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")) {
-            @Override
-            int getValue(ZonedDateTime dateTime) {
-                return dateTime.getMonthValue();
-            }
-
-            @Override
-            ZonedDateTime setValue(ZonedDateTime dateTime, int value) {
-                return dateTime.withMonth(value).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
-            }
-
-            @Override
-            ZonedDateTime overflow(ZonedDateTime dateTime) {
-                return dateTime.plusYears(1).withMonth(1).withHour(0).withDayOfMonth(1).withMinute(0).withSecond(0).withNano(0);
-            }
-        },
-        DAY_OF_WEEK(1, 7, Arrays.asList("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")) {
-            @Override
-            int getValue(ZonedDateTime dateTime) {
-                return dateTime.getDayOfWeek().getValue();
-            }
-
-            @Override
-            ZonedDateTime setValue(ZonedDateTime dateTime, int value) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            ZonedDateTime overflow(ZonedDateTime dateTime) {
-                throw new UnsupportedOperationException();
-            }
-        };
-
-        final int from, to;
-        final List<String> names;
-
-        CronFieldType(int from, int to, List<String> names) {
-            this.from = from;
-            this.to = to;
-            this.names = names;
-        }
-
-        /**
-         * @param dateTime {@link ZonedDateTime} instance
-         * @return The field time or date value from {@code dateTime}
-         */
-        abstract int getValue(ZonedDateTime dateTime);
-
-        /**
-         * @param dateTime Initial {@link ZonedDateTime} instance to use
-         * @param value    to set for this field in {@code dateTime}
-         * @return {@link ZonedDateTime} with {@code value} set for this field and all smaller fields cleared
-         */
-        abstract ZonedDateTime setValue(ZonedDateTime dateTime, int value);
-
-        /**
-         * Handle when this field overflows and the next higher field should be incremented
-         *
-         * @param dateTime Initial {@link ZonedDateTime} instance to use
-         * @return {@link ZonedDateTime} with the next greater field incremented and all smaller fields cleared
-         */
-        abstract ZonedDateTime overflow(ZonedDateTime dateTime);
-    }
-
     private final String expr;
     private final SimpleField secondField;
     private final SimpleField minuteField;
@@ -170,11 +37,11 @@ public class CronExpression {
         }
 
         int ix = withSeconds ? 1 : 0;
-        this.secondField = new SimpleField(CronFieldType.SECOND, withSeconds ? parts[0] : "0");
-        this.minuteField = new SimpleField(CronFieldType.MINUTE, parts[ix++]);
-        this.hourField = new SimpleField(CronFieldType.HOUR, parts[ix++]);
+        this.secondField = new SimpleField(CronField.SECOND, withSeconds ? parts[0] : "0");
+        this.minuteField = new SimpleField(CronField.MINUTE, parts[ix++]);
+        this.hourField = new SimpleField(CronField.HOUR, parts[ix++]);
         this.dayOfMonthField = new DayOfMonthField(parts[ix++]);
-        this.monthField = new SimpleField(CronFieldType.MONTH, parts[ix++]);
+        this.monthField = new SimpleField(CronField.MONTH, parts[ix++]);
         this.dayOfWeekField = new DayOfWeekField(parts[ix++]);
         this.cronExpressionType = cronExpressionType;
     }
@@ -188,27 +55,27 @@ public class CronExpression {
     }
 
     public List<ZonedDateTime> nextNextSchedule(ZonedDateTime afterTime) {
-        return this.dayOfMonthField.parts.stream().map( e -> nextTimeAfter(afterTime)).collect(Collectors.toList());
+        return this.dayOfMonthField.parts.stream().map( e -> nextSchedule(afterTime)).collect(Collectors.toList());
     }
-    public ZonedDateTime nextTimeAfter(ZonedDateTime afterTime) {
+    public ZonedDateTime nextSchedule(ZonedDateTime afterTime) {
         // will search for the next time within the next 4 years. If there is no
         // time matching, an InvalidArgumentException will be thrown (it is very
         // likely that the cron expression is invalid, like the February 30th).
-        return nextTimeAfter(afterTime, afterTime.plusYears(4));
+        return nextSchedule(afterTime, afterTime.plusYears(4));
     }
 
     public LocalDateTime nextLocalDateTimeAfter(LocalDateTime dateTime) {
-        return nextTimeAfter(ZonedDateTime.of(dateTime, ZoneId.systemDefault())).toLocalDateTime();
+        return nextSchedule(ZonedDateTime.of(dateTime, ZoneId.systemDefault())).toLocalDateTime();
     }
 
-    public ZonedDateTime nextTimeAfter(ZonedDateTime afterTime, long durationInMillis) {
+    public ZonedDateTime nextSchedule(ZonedDateTime afterTime, long durationInMillis) {
         // will search for the next time within the next durationInMillis
         // millisecond. Be aware that the duration is specified in millis,
         // but in fact the limit is checked on a day-to-day basis.
-        return nextTimeAfter(afterTime, afterTime.plus(Duration.ofMillis(durationInMillis)));
+        return nextSchedule(afterTime, afterTime.plus(Duration.ofMillis(durationInMillis)));
     }
 
-    public ZonedDateTime nextTimeAfter(ZonedDateTime afterTime, ZonedDateTime dateTimeBarrier) {
+    public ZonedDateTime nextSchedule(ZonedDateTime afterTime, ZonedDateTime dateTimeBarrier) {
         ZonedDateTime[] nextDateTime = { afterTime.plusSeconds(1).withNano(0) };
 
         while (true) {
@@ -336,10 +203,10 @@ public class CronExpression {
                                 + "(?:(?<incmod>/|\\#)(?<inc>[0-9]{1,7}))?        # increment and increment modifier (/ or \\#)\n",
                         Pattern.CASE_INSENSITIVE | Pattern.COMMENTS);
 
-        final CronFieldType fieldType;
+        final CronField fieldType;
         final List<FieldPart> parts = new ArrayList<>();
 
-        private BasicField(CronFieldType fieldType, String fieldExpr) {
+        private BasicField(CronField fieldType, String fieldExpr) {
             this.fieldType = fieldType;
             parse(fieldExpr);
         }
@@ -449,7 +316,7 @@ public class CronExpression {
     }
 
     static class SimpleField extends BasicField {
-        SimpleField(CronFieldType fieldType, String fieldExpr) {
+        SimpleField(CronField fieldType, String fieldExpr) {
             super(fieldType, fieldExpr);
         }
 
@@ -492,7 +359,7 @@ public class CronExpression {
     static class DayOfWeekField extends BasicField {
 
         DayOfWeekField(String fieldExpr) {
-            super(CronFieldType.DAY_OF_WEEK, fieldExpr);
+            super(CronField.DAY_OF_WEEK, fieldExpr);
         }
 
         boolean matches(LocalDate dato) {
@@ -536,7 +403,7 @@ public class CronExpression {
 
     static class DayOfMonthField extends BasicField {
         DayOfMonthField(String fieldExpr) {
-            super(CronFieldType.DAY_OF_MONTH, fieldExpr);
+            super(CronField.DAY_OF_MONTH, fieldExpr);
         }
 
         boolean matches(LocalDate dato) {
@@ -577,39 +444,39 @@ public class CronExpression {
     }
 
     public static void main(String[] args) {
-        CronExpression expression = new CronExpression("0 0 30 * *", false, CronExpressionType.MONTHLY);
-        CronExpression expression1 = new CronExpression("0 0 31 * *", false, CronExpressionType.MONTHLY);
+        CronExpression expression = new CronExpression("0 0 L * *", false, CronExpressionType.MONTHLY);
+//        CronExpression expression1 = new CronExpression("0 0 31 * *", false, CronExpressionType.MONTHLY);
 
         LocalDate startDate = LocalDate.now();
         System.out.println("Before " + startDate);
-        var endDate  = startDate.plusYears(2);
+        var endDate  = startDate.plusYears(1);
         System.out.println("After " + endDate);
 
 
-        var result = expression.nextTimeAfter(ZonedDateTime.now());
+        var result = expression.nextSchedule(ZonedDateTime.now());
         Set<LocalDate> cronDates = new TreeSet<>();
         while (result.toLocalDate().isBefore(endDate)) {
             cronDates.add(result.toLocalDate());
-            result = expression.nextTimeAfter(result);
+            result = expression.nextSchedule(result);
 
 
         }
 
-        Set<LocalDate> cronDates1 = new TreeSet<>();
-        result = expression1.nextTimeAfter(ZonedDateTime.now());
-        while (result.toLocalDate().isBefore(endDate)) {
-            cronDates1.add(result.toLocalDate());
-            result = expression1.nextTimeAfter(result);
+//        Set<LocalDate> cronDates1 = new TreeSet<>();
+//        result = expression1.nextTimeAfter(ZonedDateTime.now());
+//        while (result.toLocalDate().isBefore(endDate)) {
+//            cronDates1.add(result.toLocalDate());
+//            result = expression1.nextTimeAfter(result);
+//
+//
+//        }
+
+//        List<LocalDate> finalResults = Stream.concat(cronDates.stream()/*, cronDates1.stream()*/).
+//                sorted().
+//                collect(Collectors.toList());
 
 
-        }
-
-        List<LocalDate> finalResults = Stream.concat(cronDates.stream(), cronDates1.stream()).
-                sorted().
-                collect(Collectors.toList());
-
-
-        System.out.println(finalResults);
+        System.out.println(cronDates);
 //        CronExpression expression = new CronExpression("0 0 29 * *", false,CronExpressionType.MONTHLY);
 //        ZonedDateTime zonedDateTime = expression.nextTimeAfter(ZonedDateTime.parse("2023-01-31T00:50:00Z"));
 //        System.out.println(zonedDateTime);

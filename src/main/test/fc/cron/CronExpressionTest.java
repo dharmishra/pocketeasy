@@ -5,19 +5,12 @@ package fc.cron;
 
 import com.pocketeasy.pocketeasy.util.CronExpression;
 import com.pocketeasy.pocketeasy.util.CronExpressionType;
-import org.aspectj.lang.annotation.After;
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDate;
-import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -363,15 +356,15 @@ public class CronExpressionTest {
 
         ZonedDateTime after = ZonedDateTime.of(2012, 4, 10, 13, 0, 0, 0, zoneId);
         ZonedDateTime expected = ZonedDateTime.of(2012, 4, 10, 19, 0, 0, 0, zoneId);
-        assertEquals(expected, cronExpr.nextTimeAfter(after));
+        assertEquals(expected, cronExpr.nextSchedule(after));
 
         after = ZonedDateTime.of(2012, 4, 10, 19, 0, 0, 0, zoneId);
         expected = ZonedDateTime.of(2012, 4, 10, 19, 1, 0, 0, zoneId);
-        assertEquals(expected, cronExpr.nextTimeAfter(after));
+        assertEquals(expected, cronExpr.nextSchedule(after));
 
         after = ZonedDateTime.of(2012, 4, 10, 19, 59, 0, 0, zoneId);
         expected = ZonedDateTime.of(2012, 4, 11, 7, 0, 0, 0, zoneId);
-        assertEquals(expected, cronExpr.nextTimeAfter(after));
+        assertEquals(expected, cronExpr.nextSchedule(after));
     }
 //
 //    @Test
